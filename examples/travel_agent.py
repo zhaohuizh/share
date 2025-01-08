@@ -171,37 +171,42 @@ if __name__ == "__main__":
     steps = get_trip_planning_steps(full_context)
     print(f"\nSteps for planning your trip:\n{steps}")
 
-    # Step 5: Suggest destinations
-    preferences = {
-        "type": input("\nWhat type of destination do you prefer (e.g., beach, city, adventure)? "),
-        "budget": input("What is your budget (e.g., $1000)? "),
-        "interests": input("What are your interests (e.g., hiking, shopping)? "),
-    }
-    print("\nFinding destinations...")
-    destinations = suggest_destinations(full_context, preferences)
-    print(f"\nHere are some suggestions:\n{destinations}")
-    selected_destination = input("\nWhich destination would you like to visit? ")
-
-    # Step 6: Fetch and display flight options
-    print("\nFetching flight options...")
-    flights = fetch_flights("JFK", selected_destination, "2025-02-15")  # Replace JFK with your origin
-    if "error" in flights:
-        print("Error fetching flights:", flights["error"])
-    else:
-        print("\nAvailable flights:")
-        for flight in flights["results"]:
-            print(f"Flight ID: {flight['id']}, Price: {flight['price']}, Duration: {flight['duration']}")
-
-        # Step 7: Book a flight
-        flight_id = input("\nEnter the Flight ID to book: ")
-        passenger_details = {
-            "name": profile_context['name'],
-            "email": profile_context['email'],
-            "phone": input("Enter your phone number: "),
+    # Execute steps dynamically
+    if "destination" in steps.lower():
+        # Step: Get preferences
+        preferences = {
+            "type": input("\nWhat type of destination do you prefer (e.g., beach, city, adventure)? "),
+            "budget": input("What is your budget (e.g., $1000)? "),
+            "interests": input("What are your interests (e.g., hiking, shopping)? "),
         }
-        booking_response = book_flight(flight_id, passenger_details)
-        if "error" in booking_response:
-            print("Error booking flight:", booking_response["error"])
+
+        # Step: Get destination suggestions
+        print("\nFinding destinations...")
+        destinations = get_destination_suggestions(preferences)
+        print(f"\nHere are some suggestions:\n{destinations}")
+        selected_destination = input("\nWhich destination would you like to visit? ")
+
+    if "flights" in steps.lower():
+        # Step: Fetch flight options
+        print("\nFetching flight options...")
+        flights = fetch_flights("JFK", selected_destination, "2025-02-15")  # Replace JFK with your origin
+        if "error" in flights:
+            print("Error fetching flights:", flights["error"])
         else:
-            print("\nBooking confirmed! Here are the details:")
-            print(booking_response)
+            print("\nAvailable flights:")
+            for flight in flights["results"]:
+                print(f"Flight ID: {flight['id']}, Price: {flight['price']}, Duration: {flight['duration']}")
+
+            # Step: Book a flight
+            flight_id = input("\nEnter the Flight ID to book: ")
+            passenger_details = {
+                "name": input("Enter your full name: "),
+                "email": input("Enter your email: "),
+                "phone": input("Enter your phone number: "),
+            }
+            booking_response = book_flight(flight_id, passenger_details)
+            if "error" in booking_response:
+                print("Error booking flight:", booking_response["error"])
+            else:
+                print("\nBooking confirmed! Here are the details:")
+                print(booking_response)
